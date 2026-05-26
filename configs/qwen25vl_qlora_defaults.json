@@ -1,0 +1,35 @@
+{
+  "model_name_or_path": "Qwen/Qwen2.5-VL-7B-Instruct",
+  "quantization": {
+    "load_in_4bit": true,
+    "bnb_4bit_compute_dtype": "bfloat16",
+    "bnb_4bit_quant_type": "nf4",
+    "bnb_4bit_use_double_quant": true
+  },
+  "lora": {
+    "rank": 16,
+    "alpha": 32,
+    "dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ]
+  },
+  "training": {
+    "gradient_checkpointing": true,
+    "bf16": true,
+    "per_device_train_batch_size": 1,
+    "gradient_accumulation_steps": 16,
+    "max_length": 4096
+  },
+  "lorasculpt": {
+    "enabled": true,
+    "sculpt_interval": 300,
+    "ab_preserve_ratio": 0.1
+  }
+}

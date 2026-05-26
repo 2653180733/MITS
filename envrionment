@@ -1,0 +1,4 @@
+export DATASET_ROOT=/root/autodl-tmp/data/dataset
+export MODEL_PATH=/root/autodl-tmp/Qwen/Qwen2.5-VL-7B-Instruct
+export WORK_DIR=/root/autodl-tmp/data/outputs/full
+export OMP_NUM_THREADS=8
