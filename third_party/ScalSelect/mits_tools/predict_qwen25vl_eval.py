@@ -109,10 +109,30 @@ def _validate_hf_shards(model_path: str) -> None:
     )
 
 
+def _validate_local_model_path(model_path: str) -> None:
+    if not model_path or not os.path.isabs(model_path):
+        return
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(
+            f"Local model path does not exist: {model_path}. "
+            "If this is Ours merged, rerun export_merged_lora_qwen25vl.py or set MERGED_OURS_MODEL "
+            "to the actual merged model directory."
+        )
+    if not os.path.isdir(model_path):
+        raise NotADirectoryError(f"Local model path is not a directory: {model_path}")
+    config_path = os.path.join(model_path, "config.json")
+    if not os.path.exists(config_path):
+        raise FileNotFoundError(
+            f"Local model directory is missing config.json: {model_path}. "
+            "This does not look like a complete HuggingFace model export."
+        )
+
+
 def _load_model_and_processor(args: argparse.Namespace):
     import torch
     from transformers import AutoProcessor, Qwen2_5_VLForConditionalGeneration
 
+    _validate_local_model_path(args.model)
     if not args.skip_shard_check:
         _validate_hf_shards(args.model)
     dtype = _resolve_dtype(args.torch_dtype)
