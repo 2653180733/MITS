@@ -54,6 +54,12 @@ def parse_args() -> argparse.Namespace:
         help="Skip local HuggingFace safetensors shard existence validation.",
     )
     parser.add_argument("--system-prompt", default="You are a helpful assistant.")
+    parser.add_argument(
+        "--task-format-instruction",
+        default="none",
+        choices=["none", "auto"],
+        help="Append strict answer-format instructions by task. Default keeps original questions unchanged.",
+    )
     return parser.parse_args()
 
 
@@ -180,6 +186,20 @@ def _device_for_inputs(device_map: str) -> str:
     return "cuda"
 
 
+def _format_instruction(record: Dict[str, Any], mode: str) -> str:
+    if mode == "none":
+        return ""
+    task = str(record.get("task") or "").lower()
+    answer_type = str(record.get("answer_type") or "").lower()
+    if task == "counting" or answer_type == "count":
+        return "Answer with a single integer only."
+    if task == "localization" or answer_type == "bbox":
+        return "Answer only with bounding box coordinates in [x1, y1, x2, y2] format. If the target is absent, answer: no object."
+    if answer_type == "yesno":
+        return "Answer only yes or no."
+    return ""
+
+
 def _predict_one(model, processor, image_path: str, question: str, args: argparse.Namespace) -> Dict[str, Any]:
     import torch
     from PIL import Image
@@ -299,11 +319,15 @@ def main() -> None:
                 flush=True,
             )
         sample_started_at = time.time()
+        question = str(record.get("question") or "")
+        instruction = _format_instruction(record, args.task_format_instruction)
+        if instruction:
+            question = f"{question}\n\n{instruction}"
         prediction_info = _predict_one(
             model=model,
             processor=processor,
             image_path=image_path,
-            question=str(record.get("question") or ""),
+            question=question,
             args=args,
         )
         item = dict(record)
