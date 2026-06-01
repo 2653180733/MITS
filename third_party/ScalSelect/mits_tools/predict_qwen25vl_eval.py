@@ -57,7 +57,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--task-format-instruction",
         default="none",
-        choices=["none", "auto"],
+        choices=["none", "auto", "count_loc"],
         help="Append strict answer-format instructions by task. Default keeps original questions unchanged.",
     )
     return parser.parse_args()
@@ -195,6 +195,8 @@ def _format_instruction(record: Dict[str, Any], mode: str) -> str:
         return "Answer with a single integer only."
     if task == "localization" or answer_type == "bbox":
         return "Answer only with bounding box coordinates in [x1, y1, x2, y2] format. If the target is absent, answer: no object."
+    if mode == "count_loc":
+        return ""
     if answer_type == "yesno":
         return "Answer only yes or no."
     return ""
